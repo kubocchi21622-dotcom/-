@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI しゃしんキレイ Studio</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap');
+    
+    body {
+      font-family: 'Zen Maru Gothic', 'Hiragino Sans', sans-serif;
+    }
+
+    /* 比較スライダー用スタイル */
+    .img-comp-container {
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+    }
+    .img-comp-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+    .img-comp-slider {
+      position: absolute;
+      z-index: 20;
+      top: 0;
+      bottom: 0;
+      width: 8px;
+      background: #facc15;
+      cursor: ew-resize;
+      box-shadow: 0 0 12px rgba(0,0,0,0.5);
+    }
+    .img-comp-button {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background-color: #facc15;
+      border: 4px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1e293b;
+    }
+
+    /* ふわふわアニメーション */
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+      100% { transform: translateY(0px); }
+    }
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-amber-50 text-slate-800 min-h-full flex flex-col font-medium select-none">
+
+  <!-- ヘッダー -->
+  <header class="bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 text-slate-900 border-b-4 border-amber-500 shadow-md px-4 py-3 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 bg-white rounded-2xl shadow-inner text-amber-500">
+          <i data-lucide="wand-2" class="w-8 h-8 stroke-[2.5]"></i>
+        </div>
+        <div>
+          <h1 class="text-xl md:text-2xl font-black tracking-wide text-slate-900">
+            AI しゃしんキレイ Studio
+          </h1>
+          <p class="text-xs md:text-sm font-bold text-slate-800">プリントや教科書を よみやすく変身（へんしん）させよう！</p>
+        </div>
+      </div>
+      <div class="hidden sm:flex items-center gap-2 bg-white/90 px-3.5 py-1.5 rounded-full font-black text-xs text-amber-900 border-2 border-amber-300 shadow-sm">
+        <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
+        AI じゅんびOK！
+      </div>
+    </div>
+  </header>
+
+  <!-- メイン画面 -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- 左側：操作エリア -->
+    <section class="lg:col-span-5 flex flex-col gap-5">
+      
+      <!-- ステップ1: 写真をえらぶ -->
+      <div class="bg-white border-4 border-amber-200 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all">
+        <div class="flex items-center gap-2 text-amber-600 font-black text-lg mb-3">
+          <span class="w-9 h-9 rounded-full bg-amber-500 text-white flex items-center justify-center text-xl shadow">1</span>
+          <h2>しゃしんを えらぶ</h2>
+        </div>
+
+        <div class="bg-amber-50/80 border-3 border-dashed border-amber-300 hover:border-amber-500 rounded-2xl p-5 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 group" id="drop-zone">
+          <input type="file" id="image-input" accept="image/*" class="hidden">
+          <div class="w-14 h-14 bg-amber-400 text-white rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
+            <i data-lucide="image-plus" class="w-8 h-8 stroke-[2.5]"></i>
+          </div>
+          <div>
+            <p class="text-base font-black text-slate-800">ここを押して 写真をえらぶ</p>
+            <p class="text-xs font-bold text-amber-700 mt-0.5">（スマホの写真、教科書、プリントなど）</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ステップ2: どんなデザインにするか選ぶ -->
+      <div class="bg-white border-4 border-amber-200 rounded-3xl p-5 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2 text-amber-600 font-black text-lg">
+            <span class="w-9 h-9 rounded-full bg-amber-500 text-white flex items-center justify-center text-xl shadow">2</span>
+            <h2>へんしんの しゅるい</h2>
+          </div>
+          <span class="text-xs font-black bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full border border-orange-200">すべて・ふりがな付き</span>
+        </div>
+        
+        <!-- 4つのダイナミック変身プリセット -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="presets-container">
+          
+          <button data-prompt="RE-LAYOUT INTO LANDSCAPE 16:9 FORMAT: Completely redesign this educational material into a horizontal landscape study poster! Make the main title extremely large in a decorative header banner. Re-organize content into side-by-side rounded cards. ADD HIRAGANA FURIGANA ABOVE ALL KANJI. DO NOT ANSWER ANY QUIZZES OR QUESTIONS." 
+                  class="preset-btn p-3.5 bg-slate-50 border-3 border-slate-200 hover:border-amber-400 rounded-2xl text-left transition-all active:scale-95 flex items-center gap-3">
+            <div class="p-2.5 bg-amber-100 text-amber-600 rounded-xl">
+              <i data-lucide="layout-grid" class="w-6 h-6 stroke-[2.5]"></i>
+            </div>
+            <div>
+              <p class="text-sm font-black text-slate-800">横型ポスター風</p>
+              <p class="text-[11px] font-bold text-slate-500">大画面で見やすい配置</p>
+            </div>
+          </button>
+
+          <button data-prompt="COLORFUL & POP NOTEBOOKS STYLE: Re-arrange into a horizontal landscape composition with vibrant colored cards, pastel background boxes, thick rounded borders, and playful study sticker icons. ADD HIRAGANA FURIGANA ABOVE ALL KANJI. DO NOT ANSWER ANY QUIZZES OR QUESTIONS." 
+                  class="preset-btn p-3.5 bg-slate-50 border-3 border-slate-200 hover:border-amber-400 rounded-2xl text-left transition-all active:scale-95 flex items-center gap-3">
+            <div class="p-2.5 bg-emerald-100 text-emerald-600 rounded-xl">
+              <i data-lucide="palette" class="w-6 h-6 stroke-[2.5]"></i>
+            </div>
+            <div>
+              <p class="text-sm font-black text-slate-800">カラフルノート風</p>
+              <p class="text-[11px] font-bold text-slate-500">色わけで見やすく整理</p>
+            </div>
+          </button>
+
+          <button data-prompt="GIANT TEXT & MARKERS: Re-format in a horizontal landscape mode. Enlarge all Japanese text using very heavy bold rounded font. Highlight main keywords with yellow marker lines and bright badges. ADD HIRAGANA FURIGANA ABOVE ALL KANJI. DO NOT ANSWER ANY QUIZZES OR QUESTIONS." 
+                  class="preset-btn p-3.5 bg-slate-50 border-3 border-slate-200 hover:border-amber-400 rounded-2xl text-left transition-all active:scale-95 flex items-center gap-3">
+            <div class="p-2.5 bg-blue-100 text-blue-600 rounded-xl">
+              <i data-lucide="highlighter" class="w-6 h-6 stroke-[2.5]"></i>
+            </div>
+            <div>
+              <p class="text-sm font-black text-slate-800">でか文字＆マーカー</p>
+              <p class="text-[11px] font-bold text-slate-500">重要ワードを強調</p>
+            </div>
+          </button>
+
+          <button data-prompt="HIGH-CONTRAST CLEAN SHEET: Re-layout into a clean horizontal landscape sheet. White background with extra high contrast thick dark text, large headings, and clear rounded box dividers. ADD HIRAGANA FURIGANA ABOVE ALL KANJI. DO NOT ANSWER ANY QUIZZES OR QUESTIONS." 
+                  class="preset-btn p-3.5 bg-slate-50 border-3 border-slate-200 hover:border-amber-400 rounded-2xl text-left transition-all active:scale-95 flex items-center gap-3">
+            <div class="p-2.5 bg-purple-100 text-purple-600 rounded-xl">
+              <i data-lucide="file-text" class="w-6 h-6 stroke-[2.5]"></i>
+            </div>
+            <div>
+              <p class="text-sm font-black text-slate-800">くっきりハッキリ</p>
+              <p class="text-[11px] font-bold text-slate-500">文字と線を超クリアに</p>
+            </div>
+          </button>
+
+        </div>
+
+        <!-- イラスト追加の選択肢 -->
+        <div class="mt-3 pt-3 border-t-2 border-slate-100 flex items-center justify-between">
+          <label for="add-illustration-check" class="text-xs font-black text-slate-700 flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="add-illustration-check" checked class="w-4 h-4 text-amber-500 rounded border-slate-300 focus:ring-amber-400">
+            内容（ないよう）に合った イラストを入れる
+          </label>
+        </div>
+
+        <!-- 自由入力（オプション） -->
+        <div class="mt-3 pt-2 border-t border-slate-100">
+          <label class="text-xs font-black text-slate-600 flex items-center gap-1 mb-1">
+            <i data-lucide="pencil" class="w-3.5 h-3.5 text-amber-500"></i>
+            もっと おねがいしたいこと（なくてもOK）
+          </label>
+          <input type="text" id="custom-prompt" 
+                 placeholder="例: たてるの文字を よこがきのポスターにして" 
+                 class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-amber-400 transition-colors placeholder:text-slate-400">
+        </div>
+
+      </div>
+
+      <!-- ステップ3: 変身スタートボタン -->
+      <button id="process-btn" disabled 
+              class="w-full py-4 px-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 disabled:from-slate-300 disabled:to-slate-300 text-white font-black rounded-3xl text-lg md:text-xl transition-all shadow-lg hover:shadow-xl active:scale-98 flex items-center justify-center gap-3 border-b-4 border-emerald-700 disabled:border-slate-400 disabled:shadow-none">
+        <i data-lucide="wand-2" class="w-7 h-7"></i>
+        3. 写真を変身（へんしん）させる！
+      </button>
+
+    </section>
+
+    <!-- 右側：プレビュー画面 -->
+    <section class="lg:col-span-7 flex flex-col gap-4">
+      
+      <div class="bg-white border-4 border-amber-200 rounded-3xl p-5 shadow-sm flex-1 flex flex-col min-h-[440px]">
+        
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-base font-black text-slate-700 flex items-center gap-2">
+            <i data-lucide="eye" class="w-5 h-5 text-amber-500"></i>
+            へんしん前 と へんしん後
+          </h2>
+
+          <div id="status-badge" class="hidden text-xs font-black px-3.5 py-1.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-2 animate-bounce">
+            <div class="w-3.5 h-3.5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+            AIが 横型・ふりがな付きで作っています...
+          </div>
+        </div>
+
+        <!-- プレビュー表示エリア（横型デザイン16:9表示対応） -->
+        <div class="flex-1 bg-slate-900 rounded-2xl border-4 border-slate-200 relative flex items-center justify-center overflow-hidden min-h-[320px]" id="preview-wrapper">
+          
+          <!-- まだ写真がないときの案内 -->
+          <div id="empty-state" class="flex flex-col items-center gap-3 text-slate-400 p-6 text-center">
+            <div class="p-4 bg-slate-800 rounded-full animate-float">
+              <i data-lucide="image" class="w-16 h-16 stroke-[1.5] text-amber-400"></i>
+            </div>
+            <p class="text-base font-bold text-slate-200">① ひだりの ボタンから<br>写真をえらんでね！</p>
+          </div>
+
+          <!-- 写真比較（スライダー） -->
+          <div id="comparison-box" class="hidden relative w-full h-full min-h-[300px] flex items-center justify-center p-2">
+            <div id="img-comp-wrapper" class="img-comp-container relative max-w-full max-h-full aspect-video flex items-center justify-center">
+              <!-- 変身後の写真（下側 - 横長表示にフィット） -->
+              <img id="img-after" class="max-h-[460px] w-auto max-w-full object-contain block select-none" alt="変身後">
+              
+              <!-- 変身前の写真（上側切り抜き） -->
+              <div id="img-before-clip" class="img-comp-img">
+                <img id="img-before" class="max-h-[460px] w-auto max-w-full object-contain block select-none" alt="変身前">
+              </div>
+
+              <!-- スライダーつまみ -->
+              <div id="slider-handle" class="img-comp-slider">
+                <div class="img-comp-button">
+                  <i data-lucide="chevrons-left-right" class="w-6 h-6 text-slate-800"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 切り替え用かんたんボタン（スライダー操作が難しい時用） -->
+        <div id="view-toggle-box" class="hidden mt-3 flex justify-center gap-2">
+          <button id="show-before-btn" class="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 font-black text-xs text-slate-700 rounded-xl transition-all">
+            元の写真を見る
+          </button>
+          <button id="show-after-btn" class="px-3.5 py-2 bg-amber-400 hover:bg-amber-500 font-black text-xs text-slate-900 rounded-xl transition-all">
+            へんしん後の写真を見る
+          </button>
+          <button id="show-split-btn" class="px-3.5 py-2 bg-blue-500 hover:bg-blue-600 font-black text-xs text-white rounded-xl transition-all">
+            くらべる (真ん中で分ける)
+          </button>
+        </div>
+
+        <!-- アクションボタンエリア -->
+        <div class="mt-4 pt-3 border-t-2 border-slate-100 flex items-center justify-between gap-3">
+          <p class="text-xs font-bold text-slate-500">
+            きにいったら 保存（ほぞん）を押してね！
+          </p>
+          
+          <div class="flex items-center gap-2">
+            <button id="save-drive-btn" disabled 
+                    class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-200 disabled:text-slate-400 text-white font-black rounded-2xl text-xs transition-all flex items-center gap-1.5 shadow-md disabled:shadow-none active:scale-95">
+              <i data-lucide="hard-drive" class="w-4 h-4"></i>
+              ドライブにほぞん
+            </button>
+            <button id="download-btn" disabled 
+                    class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-200 disabled:text-slate-400 text-white font-black rounded-2xl text-xs transition-all flex items-center gap-1.5 shadow-md disabled:shadow-none active:scale-95">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              ダウンロード
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <script>
+    // Lucideアイコンの初期化
+    lucide.createIcons();
+
+    // DOM要素
+    const dropZone = document.getElementById('drop-zone');
+    const imageInput = document.getElementById('image-input');
+    const presetBtns = document.querySelectorAll('.preset-btn');
+    const customPrompt = document.getElementById('custom-prompt');
+    const addIllustrationCheck = document.getElementById('add-illustration-check');
+    const processBtn = document.getElementById('process-btn');
+    const emptyState = document.getElementById('empty-state');
+    const comparisonBox = document.getElementById('comparison-box');
+    const statusBadge = document.getElementById('status-badge');
+    const imgBefore = document.getElementById('img-before');
+    const imgAfter = document.getElementById('img-after');
+    const imgBeforeClip = document.getElementById('img-before-clip');
+    const sliderHandle = document.getElementById('slider-handle');
+    const imgCompWrapper = document.getElementById('img-comp-wrapper');
+    const downloadBtn = document.getElementById('download-btn');
+    const saveDriveBtn = document.getElementById('save-drive-btn');
+    const viewToggleBox = document.getElementById('view-toggle-box');
+
+    // 状態管理
+    let currentBase64Image = null;
+    let enhancedBase64Image = null;
+    let selectedPrompt = presetBtns[0].getAttribute('data-prompt');
+
+    // 最初に最初のプリセットを選択状態にする
+    setPresetActive(presetBtns[0]);
+
+    function setPresetActive(activeBtn) {
+      presetBtns.forEach(btn => {
+        btn.classList.remove('border-amber-500', 'bg-amber-100/60');
+        btn.classList.add('border-slate-200', 'bg-slate-50');
+      });
+      activeBtn.classList.remove('border-slate-200', 'bg-slate-50');
+      activeBtn.classList.add('border-amber-500', 'bg-amber-100/60');
+      selectedPrompt = activeBtn.getAttribute('data-prompt');
+    }
+
+    presetBtns.forEach(btn => {
+      btn.addEventListener('click', () => setPresetActive(btn));
+    });
+
+    // ドロップゾーンのイベント
+    dropZone.addEventListener('click', () => imageInput.click());
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('border-amber-500', 'bg-amber-100/50');
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('border-amber-500', 'bg-amber-100/50');
+    });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-amber-500', 'bg-amber-100/50');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+
+    imageInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+
+    // 画像ファイル受取処理
+    function handleFileSelect(file) {
+      if (!file.type.startsWith('image/')) {
+        showToast('写真ファイル（画像）をえらんでね！');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentBase64Image = e.target.result;
+        imgBefore.src = currentBase64Image;
+        imgAfter.src = currentBase64Image;
+
+        emptyState.classList.add('hidden');
+        comparisonBox.classList.remove('hidden');
+        viewToggleBox.classList.remove('hidden');
+        processBtn.disabled = false;
+
+        initSlider();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // AI変身実行処理
+    function enhanceImageWithGemini() {
+      if (!currentBase64Image) return;
+
+      let finalPrompt = selectedPrompt;
+      if (addIllustrationCheck.checked) {
+        finalPrompt += " ALSO ADD HELPFUL RELEVANT EDUCATIONAL STICKERS OR ILLUSTRATIONS TO MATCH THE TOPIC.";
+      }
+
+      const userText = customPrompt.value.trim();
+      if (userText) {
+        finalPrompt += ` Additional specific request: ${userText}`;
+      }
+
+      // 処理中のUI制御
+      processBtn.disabled = true;
+      statusBadge.classList.remove('hidden');
+
+      // GAS環境（google.script.run）の安全チェック
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(onProcessSuccess)
+          .withFailureHandler(onProcessError)
+          .processImageWithGemini(currentBase64Image, finalPrompt);
+      } else {
+        // スタンドアロンテスト環境用のフォールバック（画面上でのテスト用）
+        setTimeout(() => {
+          onProcessSuccess({
+            success: true,
+            imageBase64: currentBase64Image
+          });
+        }, 1500);
+      }
+    }
+
+    // 変身成功時のレスポンスハンドラ
+    function onProcessSuccess(res) {
+      processBtn.disabled = false;
+      statusBadge.classList.add('hidden');
+
+      if (res && res.success && res.imageBase64) {
+        enhancedBase64Image = res.imageBase64;
+        imgAfter.src = enhancedBase64Image;
+        downloadBtn.disabled = false;
+        saveDriveBtn.disabled = false;
+
+        // スライダーを中心にリセット
+        if (imgCompWrapper) {
+          const width = imgCompWrapper.offsetWidth;
+          imgBeforeClip.style.width = (width / 2) + "px";
+          sliderHandle.style.left = (width / 2 - sliderHandle.offsetWidth / 2) + "px";
+        }
+
+        showToast('キレイな横型・ふりがな付き写真ができたよ！✨');
+      } else {
+        showToast(res.error || '画像を作れませんでした。もう一度ためしてね。');
+      }
+    }
+
+    // エラー発生時のハンドラ
+    function onProcessError(err) {
+      processBtn.disabled = false;
+      statusBadge.classList.add('hidden');
+      console.error('GAS Error:', err);
+      showToast('エラーがおきました。もう一度ためしてね。');
+    }
+
+    processBtn.addEventListener('click', enhanceImageWithGemini);
+
+    // ドライブ保存ボタン
+    saveDriveBtn.addEventListener('click', () => {
+      if (!enhancedBase64Image) return;
+
+      saveDriveBtn.disabled = true;
+      showToast('Googleドライブに ほぞんしています...');
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler((res) => {
+            saveDriveBtn.disabled = false;
+            if (res && res.success) {
+              showToast('Googleドライブの「AIキレイ写真」フォルダに保存したよ！📁');
+            } else {
+              showToast('ドライブに保存できませんでした。');
+            }
+          })
+          .withFailureHandler(() => {
+            saveDriveBtn.disabled = false;
+            showToast('保存エラーが発生しました。');
+          })
+          .saveToGoogleDrive(enhancedBase64Image, `AIキレイ写真_${Date.now()}.png`);
+      } else {
+        setTimeout(() => {
+          saveDriveBtn.disabled = false;
+          showToast('（テスト環境）ドライブ保存をシミュレートしました');
+        }, 1000);
+      }
+    });
+
+    // ローカルダウンロードボタン
+    downloadBtn.addEventListener('click', () => {
+      if (!enhancedBase64Image) return;
+      const link = document.createElement('a');
+      link.href = enhancedBase64Image;
+      link.download = `kirei-photo-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    // 比較スライダー機能
+    function initSlider() {
+      let clicked = 0;
+
+      function slideReady() {
+        const width = imgCompWrapper.offsetWidth;
+        slide(width / 2);
+      }
+
+      function slide(x) {
+        imgBeforeClip.style.width = x + "px";
+        sliderHandle.style.left = imgBeforeClip.offsetWidth - (sliderHandle.offsetWidth / 2) + "px";
+      }
+
+      // タッチ・マウスイベント座標の安全取得
+      function getCursorPos(e) {
+        let a, x = 0;
+        e = e || window.event;
+        a = imgCompWrapper.getBoundingClientRect();
+        
+        let pageX = e.pageX;
+        if (pageX === undefined && e.touches && e.touches.length > 0) {
+          pageX = e.touches[0].pageX;
+        } else if (pageX === undefined && e.changedTouches && e.changedTouches.length > 0) {
+          pageX = e.changedTouches[0].pageX;
+        }
+        
+        if (pageX === undefined) pageX = 0;
+        
+        x = pageX - a.left - window.pageXOffset;
+        return x;
+      }
+
+      function slideMove(e) {
+        if (clicked === 0) return false;
+        let pos = getCursorPos(e);
+        if (pos < 0) pos = 0;
+        if (pos > imgCompWrapper.offsetWidth) pos = imgCompWrapper.offsetWidth;
+        slide(pos);
+      }
+
+      function slideStart(e) {
+        e.preventDefault();
+        clicked = 1;
+        window.addEventListener("mousemove", slideMove);
+        window.addEventListener("touchmove", slideMove, { passive: false });
+      }
+
+      function slideStop() {
+        clicked = 0;
+      }
+
+      sliderHandle.addEventListener("mousedown", slideStart);
+      window.addEventListener("mouseup", slideStop);
+      sliderHandle.addEventListener("touchstart", slideStart, { passive: false });
+      window.addEventListener("touchend", slideStop);
+
+      imgAfter.onload = () => slideReady();
+
+      // 切り替えボタンイベント
+      document.getElementById('show-before-btn').onclick = () => {
+        slide(imgCompWrapper.offsetWidth);
+      };
+      document.getElementById('show-after-btn').onclick = () => {
+        slide(0);
+      };
+      document.getElementById('show-split-btn').onclick = () => {
+        slide(imgCompWrapper.offsetWidth / 2);
+      };
+    }
+
+    // ポップアップ通知表示
+    function showToast(msg) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-6 right-6 bg-slate-900/90 text-amber-300 font-black px-6 py-3.5 rounded-2xl shadow-2xl text-sm z-50 border-2 border-amber-400 backdrop-blur animate-bounce flex items-center gap-2';
+      toast.innerHTML = `<i data-lucide="sparkles" class="w-5 h-5 text-amber-400"></i> ${msg}`;
+      document.body.appendChild(toast);
+      lucide.createIcons();
+      setTimeout(() => toast.remove(), 4500);
+    }
+  </script>
+</body>
+</html>
